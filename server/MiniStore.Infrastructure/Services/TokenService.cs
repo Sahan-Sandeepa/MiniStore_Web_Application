@@ -1,0 +1,51 @@
+using MiniStore.Core.Entities;
+using MiniStore.Core.Interfaces;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace MiniStore.Infrastructure.Services
+{
+    public class TokenService : ITokenService
+    {
+        private readonly string _key;
+        private readonly string _issuer;
+        private readonly string _audience;
+
+        public TokenService()
+        {
+            // Load values from environment variables
+            _key = Environment.GetEnvironmentVariable("JWT_KEY")
+                   ?? throw new Exception("JWT_KEY is missing in .env");
+
+            _issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "MiniStoreAPI";
+            _audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "MiniStoreUsers";
+        }
+
+        public string CreateToken(User user)
+        {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+                new Claim("fullname", user.FullName ?? string.Empty)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _issuer,
+                audience: _audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(20),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    }
+}
