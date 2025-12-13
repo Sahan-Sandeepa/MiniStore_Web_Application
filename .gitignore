@@ -20,9 +20,9 @@ out/
 appsettings.Development.json
 appsettings.Local.json
 appsettings.*.json
-src/MiniStore.API/obj
-src/MiniStore.Core/obj
-src/MiniStore.Infrastructure/obj
+server/MiniStore.API/obj
+server/MiniStore.Core/obj
+server/MiniStore.Infrastructure/obj
 
 # Docker overrides
 docker-compose.override.yml
