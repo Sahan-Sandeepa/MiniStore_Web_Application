@@ -2,7 +2,7 @@ namespace MiniStore.Core.Entities
 {
     public class User
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string UserName { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
 
@@ -12,4 +12,5 @@ namespace MiniStore.Core.Entities
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiry { get; set; }
     }
+
 }
