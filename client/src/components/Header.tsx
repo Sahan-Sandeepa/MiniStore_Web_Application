@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { isLoggedIn, logout } from "../utils/auth";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../auth/AuthContext";
 
 export default function Header() {
   const navigate = useNavigate();
-  const loggedIn = isLoggedIn();
+  const { token, role, logout } = useAuth();
+  const loggedIn = !!token;
 
   const handleLogout = () => {
     logout();
@@ -21,49 +22,25 @@ export default function Header() {
         >
           MiniStore
         </h1>
-
-        <button
-          onClick={() => navigate(-1)}
-          className="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-        >
-          ◀
-        </button>
-
-        <button
-          onClick={() => navigate(1)}
-          className="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-        >
-          ▶
-        </button>
       </div>
 
       <nav className="flex items-center gap-4">
         {!loggedIn ? (
           <>
-            <button
-              onClick={() => navigate("/login")}
-              className="text-gray-700 dark:text-gray-200 hover:text-indigo-600"
-            >
-              Login
-            </button>
-            <button
-              onClick={() => navigate("/register")}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-            >
-              Register
-            </button>
+            <button onClick={() => navigate("/login")}>Login</button>
+            <button onClick={() => navigate("/register")}>Register</button>
           </>
         ) : (
           <>
-            <button
-              onClick={() => navigate("/products")}
-              className="text-gray-700 dark:text-gray-200 hover:text-indigo-600"
-            >
-              Products
-            </button>
+            {role === "Admin" && (
+              <button onClick={() => navigate("/admin")}>
+                Admin Dashboard
+              </button>
+            )}
+            <button onClick={() => navigate("/products")}>Products</button>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+              className="bg-red-500 text-white px-4 py-2 rounded-lg"
             >
               Logout
             </button>

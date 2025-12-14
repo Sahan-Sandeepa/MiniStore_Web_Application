@@ -4,36 +4,50 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { AuthProvider } from "./auth/AuthContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Products from "./pages/Products";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RequireRole from "./auth/RequireRole";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
-    <Router>
-      <Header />
+    <AuthProvider>
+      <Router>
+        <Header />
 
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Routes>
+          <Route
+            path="/admin"
+            element={
+              <RequireRole role="Admin">
+                <AdminDashboard />
+              </RequireRole>
+            }
+          />
 
-        <Route
-          path="/products"
-          element={
-            <ProtectedRoute>
-              <Products />
-            </ProtectedRoute>
-          }
-        />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          <Route
+            path="/products"
+            element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            }
+          />
 
-      <Footer />
-    </Router>
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+
+        <Footer />
+      </Router>
+    </AuthProvider>
   );
 }
 
