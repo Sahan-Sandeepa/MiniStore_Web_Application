@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { getProducts, createProduct, deleteProduct, searchProducts } from "../api/product";
+import {
+  getProducts,
+  createProduct,
+  deleteProduct,
+  searchProducts,
+  updateProduct,
+} from "../api/product";
 import { ProductCreateDto, ProductReadDto } from "../types/product";
 import { toast, Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +22,11 @@ export default function Products() {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [editingProduct, setEditingProduct] = useState<ProductReadDto | null>(
+    null
+  );
+  const [editForm, setEditForm] = useState<ProductCreateDto | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -74,10 +85,38 @@ export default function Products() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-    toast.success("Logged out");
+  const handleUpdate = async () => {
+    if (!editingProduct || !editForm) return;
+
+    if (!editForm.name || editForm.price <= 0 || editForm.stock < 0) {
+      toast.error("Invalid product details");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await updateProduct(editingProduct.id, editForm);
+      toast.success("Product updated");
+      setIsEditOpen(false);
+      setEditingProduct(null);
+      loadProducts();
+    } catch {
+      toast.error("Failed to update product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openEdit = (product: ProductReadDto) => {
+    setEditingProduct(product);
+    setEditForm({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      category: product.category,
+    });
+    setIsEditOpen(true);
   };
 
   return (
@@ -86,12 +125,6 @@ export default function Products() {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Products Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
-        >
-          Logout
-        </button>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -174,15 +207,94 @@ export default function Products() {
               <p className="mt-1">Stock: {p.stock}</p>
               <p className="mt-1 text-sm">{p.description}</p>
             </div>
-            <button
-              onClick={() => handleDelete(p.id)}
-              className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition"
-            >
-              Delete
-            </button>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => openEdit(p)}
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(p.id)}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
+
+      {isEditOpen && editForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl p-6 space-y-4 shadow-xl">
+            <h2 className="text-xl font-semibold">Edit Product</h2>
+
+            <input
+              value={editForm.name}
+              onChange={(e) =>
+                setEditForm({ ...editForm, name: e.target.value })
+              }
+              placeholder="Name"
+              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
+            />
+
+            <input
+              value={editForm.category}
+              onChange={(e) =>
+                setEditForm({ ...editForm, category: e.target.value })
+              }
+              placeholder="Category"
+              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
+            />
+
+            <input
+              type="number"
+              value={editForm.price}
+              onChange={(e) =>
+                setEditForm({ ...editForm, price: +e.target.value })
+              }
+              placeholder="Price"
+              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
+            />
+
+            <input
+              type="number"
+              value={editForm.stock}
+              onChange={(e) =>
+                setEditForm({ ...editForm, stock: +e.target.value })
+              }
+              placeholder="Stock"
+              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
+            />
+
+            <textarea
+              value={editForm.description}
+              onChange={(e) =>
+                setEditForm({ ...editForm, description: e.target.value })
+              }
+              placeholder="Description"
+              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsEditOpen(false)}
+                className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                disabled={loading}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50"
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

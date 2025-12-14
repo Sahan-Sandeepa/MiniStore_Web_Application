@@ -16,7 +16,7 @@ const Register = () => {
   const isFormValid =
     userName.trim().length > 2 &&
     fullName.trim().length > 2 &&
-    password.length >= 6;
+    password.length >= 4;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
