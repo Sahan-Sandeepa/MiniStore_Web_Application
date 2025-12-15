@@ -45,6 +45,8 @@ This project follows **real-world architecture and best practices**, including J
 - **Entity Framework Core**
 - **JWT Authentication**
 - **SQL Server(PostgreSQL)**
+- **Redis**
+- **Elasticsearch**
 - **Clean Architecture**
   - Core
   - Infrastructure
