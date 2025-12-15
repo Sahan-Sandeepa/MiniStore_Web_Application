@@ -15,7 +15,6 @@ export const login = async (data: { userName: string; password: string }) => {
   const res = await axios.post(`${API_URL}/login`, data);
   localStorage.setItem("token", res.data.token);
   localStorage.setItem("refreshToken", res.data.refreshToken);
-  localStorage.setItem("role", res.data.role);
   return res.data;
 };
 

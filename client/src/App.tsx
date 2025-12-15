@@ -10,7 +10,6 @@ import Register from "./pages/Register";
 import Products from "./pages/Products";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import ProtectedRoute from "./components/ProtectedRoute";
 import RequireRole from "./auth/RequireRole";
 import AdminDashboard from "./pages/AdminDashboard";
 
@@ -33,14 +32,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute>
-                <Products />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/products" element={<Products />} />
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

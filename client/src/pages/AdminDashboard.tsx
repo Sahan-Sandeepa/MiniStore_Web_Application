@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { getProducts } from "../api/product";
 import { ProductReadDto } from "../types/product";
 import { toast } from "react-hot-toast";
-import { logout } from "../utils/auth";
 import { DashboardCard, ActionCard } from "../components/Cards";
+import { useAuth } from "../auth/AuthContext";
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<ProductReadDto[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   useEffect(() => {
     const loadData = async () => {

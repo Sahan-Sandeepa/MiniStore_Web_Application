@@ -1,30 +1,34 @@
 import { createContext, useContext, useState } from "react";
+import { getRoleFromToken } from "../utils/jwt";
+
+type Role = "Admin" | "Customer";
 
 type AuthContextType = {
   token: string | null;
-  role: "Admin" | "Customer" | null;
-  login: (token: string, role: "Admin" | "Customer") => void;
+  role: Role | null;
+  login: (token: string) => void;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>(null!);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [role, setRole] = useState<"Admin" | "Customer" | null>(
-    localStorage.getItem("role") as "Admin" | "Customer" | null
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
   );
 
-  const login = (token: string, role: "Admin" | "Customer") => {
+  const [role, setRole] = useState<Role | null>(
+    token ? getRoleFromToken(token) : null
+  );
+
+  const login = (token: string) => {
     localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
     setToken(token);
-    setRole(role);
+    setRole(getRoleFromToken(token));
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("role");
     setToken(null);
     setRole(null);
   };

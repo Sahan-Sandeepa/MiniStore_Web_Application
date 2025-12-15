@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import AuthLayout from "../components/AuthLayout";
 import { login } from "../api/auth";
+import { getRoleFromToken } from "../utils/jwt";
+import { useAuth } from "../auth/AuthContext";
 
 const Login = () => {
   const [userName, setUserName] = useState("");
@@ -11,6 +13,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const auth = useAuth();
 
   const isFormValid = userName.trim().length > 2 && password.length >= 2;
 
@@ -22,13 +25,14 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login({ userName, password });
+      const res = await login({ userName, password });
+      auth.login(res.token);
       toast.success("Login successful 🎉");
-      setTimeout(() => navigate("/products"), 800);
+
+      const role = getRoleFromToken(res.token);
+      navigate(role === "Admin" ? "/admin" : "/products");
     } catch {
       setError("Invalid username or password");
-    } finally {
-      setLoading(false);
     }
   };
 
