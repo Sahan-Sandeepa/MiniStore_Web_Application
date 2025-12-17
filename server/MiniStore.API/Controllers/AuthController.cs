@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniStore.API.DTOs;
 using MiniStore.Core.Entities;
+using MiniStore.Core.Enums;
 using MiniStore.Core.Interfaces;
 
 namespace MiniStore.API.Controllers
@@ -31,7 +32,8 @@ namespace MiniStore.API.Controllers
                 UserName = dto.UserName,
                 FullName = dto.FullName,
                 PasswordHash = Array.Empty<byte>(),
-                PasswordSalt = Array.Empty<byte>()
+                PasswordSalt = Array.Empty<byte>(),
+                Role = UserRole.Customer
             };
 
             await _users.CreateUserAsync(user, dto.Password);

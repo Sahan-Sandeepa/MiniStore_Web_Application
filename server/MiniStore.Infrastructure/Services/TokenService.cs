@@ -15,9 +15,8 @@ namespace MiniStore.Infrastructure.Services
 
         public TokenService()
         {
-            // Load values from environment variables
             _key = Environment.GetEnvironmentVariable("JWT_KEY")
-                   ?? throw new Exception("JWT_KEY is missing in .env");
+                   ?? throw new Exception("JWT_KEY is missing");
 
             _issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "MiniStoreAPI";
             _audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "MiniStoreUsers";
@@ -25,13 +24,12 @@ namespace MiniStore.Infrastructure.Services
 
         public string CreateToken(User user)
         {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
-                new Claim("fullname", user.FullName ?? string.Empty)
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim("fullname", user.FullName),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));

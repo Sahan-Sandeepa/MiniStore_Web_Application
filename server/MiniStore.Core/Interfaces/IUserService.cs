@@ -9,5 +9,7 @@ namespace MiniStore.Core.Interfaces
         bool VerifyPassword(string password, byte[] hash, byte[] salt);
         string CreateRefreshToken();
         Task<List<User>> GetAllUsersAsync();
+
+        Task SaveChangesAsync();
     }
 }

@@ -1,23 +1,45 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider } from "./auth/AuthContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Products from "./pages/Products";
-import PrivateRoute from "./components/PrivateRoute";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import RequireRole from "./auth/RequireRole";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/products" element={
-          <PrivateRoute>
-            <Products />
-          </PrivateRoute>
-        } />
-        <Route path="*" element={<Login />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Header />
+
+        <Routes>
+          <Route
+            path="/admin"
+            element={
+              <RequireRole role="Admin">
+                <AdminDashboard />
+              </RequireRole>
+            }
+          />
+
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          <Route path="/products" element={<Products />} />
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+
+        <Footer />
+      </Router>
+    </AuthProvider>
   );
 }
 

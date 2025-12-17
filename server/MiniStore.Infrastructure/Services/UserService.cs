@@ -48,5 +48,10 @@ namespace MiniStore.Infrastructure.Services
         {
             return await _db.Users.ToListAsync();
         }
+
+        public async Task SaveChangesAsync()
+        {
+            await _db.SaveChangesAsync();
+        }
     }
 }
