@@ -14,6 +14,7 @@ import RequireRole from "./auth/RequireRole";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyOrders from "./pages/MyOrders";
 import AdminOrders from "./pages/AdminOrders";
+import CheckoutPage from "./components/orders/CheckoutPage";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
 
           <Route path="/products" element={<Products />} />
           <Route path="/orders" element={<MyOrders />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
