@@ -12,6 +12,8 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import RequireRole from "./auth/RequireRole";
 import AdminDashboard from "./pages/AdminDashboard";
+import MyOrders from "./pages/MyOrders";
+import AdminOrders from "./pages/AdminOrders";
 
 function App() {
   return (
@@ -28,11 +30,20 @@ function App() {
               </RequireRole>
             }
           />
+          <Route
+            path="/admin/orders"
+            element={
+              <RequireRole role="Admin">
+                <AdminOrders />
+              </RequireRole>
+            }
+          />
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           <Route path="/products" element={<Products />} />
+          <Route path="/orders" element={<MyOrders />} />
 
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

@@ -24,11 +24,12 @@ export const ActionCard = ({
   title: string;
   description: string;
   onClick: () => void;
-  color: "indigo" | "green";
+  color: "indigo" | "green" | "purple";
 }) => {
   const colors = {
     indigo: "bg-indigo-600 hover:bg-indigo-700",
     green: "bg-green-600 hover:bg-green-700",
+    purple: "bg-purple-600 hover:bg-purple-700",
   };
 
   return (

@@ -71,6 +71,12 @@ export default function AdminDashboard() {
           color="indigo"
         />
         <ActionCard
+          title="Manage Orders"
+          description="View customer orders and order history"
+          onClick={() => navigate("/admin/orders")}
+          color="purple"
+        />
+        <ActionCard
           title="Add New Product"
           description="Create a new product in inventory"
           onClick={() => navigate("/products")}

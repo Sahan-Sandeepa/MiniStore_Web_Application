@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
 
@@ -35,6 +35,14 @@ export default function Header() {
             {role === "Admin" && (
               <button onClick={() => navigate("/admin")}>
                 Admin Dashboard
+              </button>
+            )}
+            {role === "Customer" && (
+              <button
+                onClick={() => navigate("/orders")}
+                className="hover:text-indigo-500"
+              >
+                My Orders
               </button>
             )}
             <button onClick={() => navigate("/products")}>Products</button>
