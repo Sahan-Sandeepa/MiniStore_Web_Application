@@ -9,6 +9,7 @@ import {
 import { ProductCreateDto, ProductReadDto } from "../types/product";
 import { toast, Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 export default function Products() {
   const [products, setProducts] = useState<ProductReadDto[]>([]);
@@ -27,6 +28,8 @@ export default function Products() {
   );
   const [editForm, setEditForm] = useState<ProductCreateDto | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const { role } = useAuth();
+  const isAdmin = role === "Admin";
 
   const loadProducts = async () => {
     setLoading(true);
@@ -144,55 +147,59 @@ export default function Products() {
         </button>
       </div>
 
-      <div className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md space-y-4">
-        <h2 className="text-xl font-semibold">Create Product</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            placeholder="Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+      {isAdmin && (
+        <div className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md space-y-4">
+          <h2 className="text-xl font-semibold">Create Product</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              placeholder="Name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                        bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            placeholder="Category"
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+            />
+            <input
+              placeholder="Category"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                        bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="number"
-            placeholder="Price"
-            value={form.price || ""}
-            onChange={(e) => setForm({ ...form, price: +e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+            />
+            <input
+              type="number"
+              placeholder="Price"
+              value={form.price || ""}
+              onChange={(e) => setForm({ ...form, price: +e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                        bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="number"
-            placeholder="Stock"
-            value={form.stock || ""}
-            onChange={(e) => setForm({ ...form, stock: +e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+            />
+            <input
+              type="number"
+              placeholder="Stock"
+              value={form.stock || ""}
+              onChange={(e) => setForm({ ...form, stock: +e.target.value })}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                        bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="col-span-1 md:col-span-2 w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
+            />
+            <input
+              placeholder="Description"
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              className="col-span-1 md:col-span-2 w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
                        bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-          />
+            />
+          </div>
+          <button
+            onClick={handleCreate}
+            disabled={loading}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
+          >
+            {loading ? "Processing..." : "Create Product"}
+          </button>
         </div>
-        <button
-          onClick={handleCreate}
-          disabled={loading}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
-        >
-          {loading ? "Processing..." : "Create Product"}
-        </button>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((p) => (
@@ -207,20 +214,23 @@ export default function Products() {
               <p className="mt-1">Stock: {p.stock}</p>
               <p className="mt-1 text-sm">{p.description}</p>
             </div>
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => openEdit(p)}
-                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(p.id)}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition"
-              >
-                Delete
-              </button>
-            </div>
+
+            {isAdmin && (
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => openEdit(p)}
+                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(p.id)}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
