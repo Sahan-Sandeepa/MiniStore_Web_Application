@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniStore.Core.DTOs;
+using MiniStore.Core.Entities;
 using MiniStore.Core.Interfaces;
 using MiniStore.Infrastructure.Services;
-using MiniStore.Core.Entities;
 
 namespace MiniStore.API.Controllers
 {
@@ -14,7 +15,10 @@ namespace MiniStore.API.Controllers
         private readonly RedisCacheService _cache;
         private readonly ElasticsearchService _es;
 
-        public ProductController(IProductRepository repository, RedisCacheService cache, ElasticsearchService es)
+        public ProductController(
+            IProductRepository repository,
+            RedisCacheService cache,
+            ElasticsearchService es)
         {
             _repository = repository;
             _cache = cache;
@@ -68,7 +72,8 @@ namespace MiniStore.API.Controllers
             };
         }
 
-        // CREATE
+        //ADMIN ONLY
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<ProductReadDto>> Create(ProductCreateDto dto)
         {
@@ -101,7 +106,8 @@ namespace MiniStore.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, result);
         }
 
-        // UPDATE
+        //ADMIN ONLY
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, ProductCreateDto dto)
         {
@@ -120,7 +126,8 @@ namespace MiniStore.API.Controllers
             return NoContent();
         }
 
-        // DELETE
+        //ADMIN ONLY
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -133,11 +140,13 @@ namespace MiniStore.API.Controllers
             return NoContent();
         }
 
-        // GET: api/Product/search?query=laptop
+        //PUBLIC
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string query)
         {
-            if (string.IsNullOrWhiteSpace(query)) return BadRequest("Query cannot be empty");
+            if (string.IsNullOrWhiteSpace(query))
+                return BadRequest("Query cannot be empty");
+
             var results = await _es.SearchProductsAsync(query);
             return Ok(results);
         }
