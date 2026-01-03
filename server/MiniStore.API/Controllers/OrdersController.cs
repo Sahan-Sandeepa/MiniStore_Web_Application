@@ -1,16 +1,16 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniStore.Core.DTOs;
 using MiniStore.Core.Entities;
+using MiniStore.Core.Enums;
 using MiniStore.Infrastructure.Data;
 
 namespace MiniStore.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/orders")]
     [Authorize]
     public class OrdersController : ControllerBase
     {
@@ -21,9 +21,13 @@ namespace MiniStore.API.Controllers
             _context = context;
         }
 
+        // CUSTOMER: Create order
         [HttpPost]
         public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
         {
+            if (dto.Items.Count == 0)
+                return BadRequest("Order must contain items");
+
             var userId = Guid.Parse(
                 User.FindFirstValue(ClaimTypes.NameIdentifier)!
             );
@@ -31,7 +35,6 @@ namespace MiniStore.API.Controllers
             var order = new Order
             {
                 UserId = userId,
-                Status = "Pending",
                 TotalAmount = dto.Items.Sum(i => i.Price * i.Quantity),
                 Items = dto.Items.Select(i => new OrderItem
                 {
@@ -86,6 +89,25 @@ namespace MiniStore.API.Controllers
             return Ok(await query
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync());
+        }
+
+        // ADMIN: Update status
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("{orderId}/status")]
+        public async Task<IActionResult> UpdateStatus(Guid orderId, UpdateOrderStatusDto dto)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order == null) return NotFound();
+
+            if (!Enum.TryParse<OrderStatus>(dto.Status, true, out var status))
+            {
+                return BadRequest("Invalid order status");
+            }
+
+            order.Status = status;
+            await _context.SaveChangesAsync();
+
+            return Ok(order);
         }
     }
 }
