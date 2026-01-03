@@ -3,6 +3,7 @@ import { useCart } from "../CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import ConfirmOrderModal from "../ConfirmOrderModal";
+import { createOrder } from "../../api/orders";
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCart();
@@ -16,11 +17,16 @@ export default function CheckoutPage() {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  const handleConfirm = () => {
-    toast.success("Order placed successfully!");
-    clearCart();
-    setShowConfirm(false);
-    navigate("/my-orders");
+  const handleConfirm = async () => {
+    try {
+      await createOrder(items);
+      toast.success("Order placed successfully!");
+      clearCart();
+      setShowConfirm(false);
+      navigate("/my-orders");
+    } catch {
+      toast.error("Failed to place order");
+    }
   };
 
   return (

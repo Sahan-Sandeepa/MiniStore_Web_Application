@@ -1,7 +1,10 @@
 import axiosInstance from "./axios";
-import { OrderReadDto } from "../types/order";
 
 export const getMyOrders = async () => {
-  const res = await axiosInstance.get<OrderReadDto[]>("/orders/my");
+  const res = await axiosInstance.get("/orders/mine");
   return res.data;
+};
+
+export const createOrder = async (items: any[]) => {
+  await axiosInstance.post("/orders", { items });
 };
