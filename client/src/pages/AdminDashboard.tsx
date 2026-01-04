@@ -4,13 +4,13 @@ import { getProducts } from "../api/product";
 import { ProductReadDto } from "../types/product";
 import { toast } from "react-hot-toast";
 import { DashboardCard, ActionCard } from "../components/Cards";
-import { useAuth } from "../auth/AuthContext";
+// import { useAuth } from "../auth/AuthContext";
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<ProductReadDto[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
 
   useEffect(() => {
     const loadData = async () => {
@@ -30,11 +30,11 @@ export default function AdminDashboard() {
   const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
   const totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0);
 
-  const handleLogout = () => {
-    logout();
-    toast.success("Logged out");
-    navigate("/login");
-  };
+  // const handleLogout = () => {
+  //   logout();
+  //   toast.success("Logged out");
+  //   navigate("/login");
+  // };
 
   return (
     <div className="min-h-screen p-6 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -71,6 +71,12 @@ export default function AdminDashboard() {
           color="indigo"
         />
         <ActionCard
+          title="Manage Orders"
+          description="View customer orders and order history"
+          onClick={() => navigate("/admin/orders")}
+          color="purple"
+        />
+        <ActionCard
           title="Add New Product"
           description="Create a new product in inventory"
           onClick={() => navigate("/products")}
@@ -78,14 +84,14 @@ export default function AdminDashboard() {
         />
       </div>
 
-      <div className="mt-12 flex justify-end">
+      {/* <div className="mt-12 flex justify-end">
         <button
           onClick={handleLogout}
           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
         >
           Logout
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

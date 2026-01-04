@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniStore.Core.Interfaces;
-using MiniStore.Core.Enums;
 
 [ApiController]
 [Route("api/admin/users")]

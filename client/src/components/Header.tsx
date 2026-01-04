@@ -37,6 +37,22 @@ export default function Header() {
                 Admin Dashboard
               </button>
             )}
+            {role === "Customer" && (
+              <>
+                <button
+                  onClick={() => navigate("/orders")}
+                  className="hover:text-indigo-500"
+                >
+                  My Orders
+                </button>
+                <button
+                  onClick={() => navigate("/checkout")}
+                  className="hover:text-indigo-500"
+                >
+                  Checkout
+                </button>
+              </>
+            )}
             <button onClick={() => navigate("/products")}>Products</button>
             <button
               onClick={handleLogout}

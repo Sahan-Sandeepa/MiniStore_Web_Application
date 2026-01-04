@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniStore.API.DTOs;
+using MiniStore.Core.DTOs.Auth;
 using MiniStore.Core.Entities;
 using MiniStore.Core.Enums;
 using MiniStore.Core.Interfaces;
@@ -56,25 +56,36 @@ namespace MiniStore.API.Controllers
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
-            return Ok(new
+            return Ok(new AuthResponseDto
             {
-                token = accessToken,
-                refreshToken
+                Token = accessToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+                UserId = user.Id,
+                UserName = user.UserName!,
+                Role = user.Role.ToString()
             });
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> RefreshToken(string refreshToken)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
         {
-            var user = (await _users.GetAllUsersAsync())
-                       .FirstOrDefault(x => x.RefreshToken == refreshToken);
+            var user = await _users.GetByRefreshTokenAsync(dto.RefreshToken);
 
             if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
                 return Unauthorized("Invalid refresh token");
 
-            var newToken = _tokens.CreateToken(user);
+            var newAccessToken = _tokens.CreateToken(user);
 
-            return Ok(new { token = newToken });
+            user.RefreshToken = _users.CreateRefreshToken();
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+            await _users.SaveChangesAsync();
+
+            return Ok(new
+            {
+                token = newAccessToken,
+                refreshToken = user.RefreshToken
+            });
         }
 
         [Authorize]

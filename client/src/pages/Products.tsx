@@ -10,6 +10,7 @@ import { ProductCreateDto, ProductReadDto } from "../types/product";
 import { toast, Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { useCart } from "../components/CartContext";
 
 export default function Products() {
   const [products, setProducts] = useState<ProductReadDto[]>([]);
@@ -30,6 +31,8 @@ export default function Products() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const { role } = useAuth();
   const isAdmin = role === "Admin";
+  const pageTitle = isAdmin ? "Admin Product Management" : "Products";
+  const { addToCart } = useCart();
 
   const loadProducts = async () => {
     setLoading(true);
@@ -127,7 +130,7 @@ export default function Products() {
       <Toaster position="top-right" />
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Products Dashboard</h1>
+        <h1 className="text-3xl font-bold">{pageTitle}</h1>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -230,6 +233,15 @@ export default function Products() {
                   Delete
                 </button>
               </div>
+            )}
+
+            {!isAdmin && (
+              <button
+                onClick={() => addToCart(p)}
+                className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg"
+              >
+                Add to Cart
+              </button>
             )}
           </div>
         ))}
