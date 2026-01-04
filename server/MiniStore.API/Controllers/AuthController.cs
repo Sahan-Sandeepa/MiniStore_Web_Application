@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniStore.API.DTOs;
+using MiniStore.Core.DTOs.Auth;
 using MiniStore.Core.Entities;
 using MiniStore.Core.Enums;
 using MiniStore.Core.Interfaces;
@@ -56,10 +56,13 @@ namespace MiniStore.API.Controllers
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
-            return Ok(new
+            return Ok(new AuthResponseDto
             {
-                token = accessToken,
-                refreshToken
+                Token = accessToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+                UserId = user.Id,
+                UserName = user.UserName!,
+                Role = user.Role.ToString()
             });
         }
 

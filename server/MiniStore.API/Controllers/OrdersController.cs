@@ -51,18 +51,29 @@ namespace MiniStore.API.Controllers
         }
 
         // CUSTOMER: My orders
+        [Authorize]
         [HttpGet("mine")]
         public async Task<IActionResult> GetMyOrders()
         {
-            var userId = Guid.Parse(
-                User.FindFirstValue(ClaimTypes.NameIdentifier)!
-            );
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             var orders = await _context.Orders
                 .Where(o => o.UserId == userId)
-                .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
                 .OrderByDescending(o => o.CreatedAt)
+                .Select(o => new OrderReadDto
+                {
+                    Id = o.Id,
+                    CreatedAt = o.CreatedAt,
+                    Status = o.Status.ToString(),
+                    TotalAmount = o.TotalAmount,
+                    Items = o.Items.Select(i => new OrderItemReadDto
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.Product.Name,
+                        Quantity = i.Quantity,
+                        Price = i.Price
+                    }).ToList()
+                })
                 .ToListAsync();
 
             return Ok(orders);
@@ -73,11 +84,7 @@ namespace MiniStore.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllOrders(string? search)
         {
-            var query = _context.Orders
-                .Include(o => o.User)
-                .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
-                .AsQueryable();
+            var query = _context.Orders.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -86,9 +93,30 @@ namespace MiniStore.API.Controllers
                     o.User.FullName!.Contains(search));
             }
 
-            return Ok(await query
+            var orders = await query
                 .OrderByDescending(o => o.CreatedAt)
-                .ToListAsync());
+                .Select(o => new AdminOrderReadDto
+                {
+                    Id = o.Id,
+                    CreatedAt = o.CreatedAt,
+                    Status = o.Status.ToString(),
+                    TotalAmount = o.TotalAmount,
+
+                    UserId = o.User.Id,
+                    UserName = o.User.UserName!,
+                    FullName = o.User.FullName!,
+
+                    Items = o.Items.Select(i => new OrderItemReadDto
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.Product.Name,
+                        Quantity = i.Quantity,
+                        Price = i.Price
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(orders);
         }
 
         // ADMIN: Update status
@@ -107,7 +135,11 @@ namespace MiniStore.API.Controllers
             order.Status = status;
             await _context.SaveChangesAsync();
 
-            return Ok(order);
+            return Ok(new
+            {
+                order.Id,
+                Status = order.Status.ToString()
+            });
         }
     }
 }

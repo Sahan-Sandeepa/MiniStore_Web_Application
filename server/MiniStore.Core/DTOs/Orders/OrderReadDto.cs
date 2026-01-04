@@ -5,8 +5,8 @@ namespace MiniStore.Core.DTOs
         public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; }
         public decimal TotalAmount { get; set; }
-        public string Status { get; set; }
+        public required string Status { get; set; }
 
-        public List<OrderItemReadDto> Items { get; set; }
+        public required List<OrderItemReadDto> Items { get; set; }
     }
 }
