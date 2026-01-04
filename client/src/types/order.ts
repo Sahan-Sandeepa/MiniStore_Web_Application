@@ -8,7 +8,7 @@ export type OrderItemDto = {
 export type OrderReadDto = {
   id: string;
   createdAt: string;
-  status: "Pending" | "Approved" | "Cancelled" | "Completed";
+  status: "Pending" | "Processing" | "Shipped" | "Completed" | "Cancelled";
   totalAmount: number;
   items: OrderItemDto[];
 };
@@ -17,7 +17,7 @@ export type AdminOrderReadDto = {
   id: string;
   userName: string;
   createdAt: string;
-  status: "Pending" | "Approved" | "Cancelled" | "Completed";
+  status: "Pending" | "Processing" | "Shipped" | "Completed" | "Cancelled";
   totalAmount: number;
   items: {
     productName: string;

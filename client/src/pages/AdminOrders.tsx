@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../api/axios";
 import { AdminOrderReadDto } from "../types/order";
 import { Toaster, toast } from "react-hot-toast";
+import { deleteOrder } from "../api/orders";
 
 const ORDER_STATUSES = [
   "Pending",
-  "Approved",
+  "Processing",
   "Shipped",
   "Completed",
   "Cancelled",
@@ -49,11 +50,21 @@ export default function AdminOrders() {
 
   const handleStatusChange = async (orderId: string, status: string) => {
     try {
-      await axiosInstance.put(`/Orders/${orderId}/status`, { status });
+      await axiosInstance.patch(`/Orders/${orderId}/status`, { status });
       toast.success("Order status updated");
       loadOrders();
     } catch {
       toast.error("Failed to update status");
+    }
+  };
+
+  const handleDelete = async (orderId: string) => {
+    try {
+      await axiosInstance.delete(`/Orders/${orderId}`);
+      toast.success("Order deleted successfully");
+      loadOrders();
+    } catch (err: any) {
+      toast.error(err.response?.data || "Failed to delete order");
     }
   };
 
@@ -98,6 +109,7 @@ export default function AdminOrders() {
                 <th className="px-6 py-3">Items</th>
                 <th className="px-6 py-3">Total</th>
                 <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Discard</th>
               </tr>
             </thead>
             <tbody>
@@ -140,6 +152,17 @@ export default function AdminOrders() {
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td>
+                    {(order.status === "Cancelled" ||
+                      order.status === "Completed") && (
+                      <button
+                        onClick={() => handleDelete(order.id)}
+                        className="px-3 py-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

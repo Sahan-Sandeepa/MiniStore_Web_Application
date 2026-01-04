@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMyOrders } from "../api/orders";
+import { cancelOrder, getMyOrders } from "../api/orders";
 import { OrderReadDto } from "../types/order";
 import { toast, Toaster } from "react-hot-toast";
 
@@ -21,6 +21,17 @@ export default function MyOrders() {
 
     loadOrders();
   }, []);
+
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      await cancelOrder(orderId);
+      toast.success("Order cancelled");
+      const data = await getMyOrders();
+      setOrders(data);
+    } catch {
+      toast.error("Failed to cancel order");
+    }
+  };
 
   if (loading) {
     return (
@@ -49,19 +60,23 @@ export default function MyOrders() {
             >
               <div className="flex justify-between mb-3">
                 <div>
-                  <p className="font-semibold">Order #{order.id.slice(0, 8)}</p>
+                  <p className="font-semibold">
+                    Order ID - {order.id.slice(0, 8)}
+                  </p>
                   <p className="text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                 </div>
 
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium
+                  className={`px-3 py-4 rounded-full text-sm font-medium
                     ${
                       order.status === "Pending"
                         ? "bg-yellow-100 text-yellow-800"
-                        : order.status === "Approved"
+                        : order.status === "Processing"
                         ? "bg-blue-100 text-blue-800"
+                        : order.status === "Shipped"
+                        ? "bg-purple-100 text-purple-800"
                         : order.status === "Completed"
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
@@ -69,6 +84,16 @@ export default function MyOrders() {
                 >
                   {order.status}
                 </span>
+
+                {(order.status === "Pending" ||
+                  order.status === "Processing") && (
+                  <button
+                    onClick={() => handleCancelOrder(order.id)}
+                    className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg"
+                  >
+                    Cancel Order
+                  </button>
+                )}
               </div>
 
               <div className="divide-y">

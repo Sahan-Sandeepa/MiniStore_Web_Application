@@ -14,3 +14,11 @@ export const createOrder = async (items: any[]) => {
 
   await axiosInstance.post("/orders", { items: payload });
 };
+
+export const cancelOrder = async (orderId: string) => {
+  await axiosInstance.patch(`/orders/${orderId}/cancel`);
+};
+
+export const deleteOrder = async (orderId: string) => {
+  await axiosInstance.delete(`/orders/${orderId}`);
+};

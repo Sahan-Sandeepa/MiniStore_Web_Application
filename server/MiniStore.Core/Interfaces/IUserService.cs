@@ -11,5 +11,7 @@ namespace MiniStore.Core.Interfaces
         Task<List<User>> GetAllUsersAsync();
 
         Task SaveChangesAsync();
+
+        Task<User?> GetByRefreshTokenAsync(string refreshToken);
     }
 }

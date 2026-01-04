@@ -79,6 +79,30 @@ namespace MiniStore.API.Controllers
             return Ok(orders);
         }
 
+        //Customer Cancel Endpoint
+        [Authorize]
+        [HttpPatch("{orderId}/cancel")]
+        public async Task<IActionResult> CancelOrder(Guid orderId)
+        {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var order = await _context.Orders
+                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+
+            if (order == null) return NotFound();
+
+            if (order.Status != OrderStatus.Pending &&
+                order.Status != OrderStatus.Processing)
+            {
+                return BadRequest("Order cannot be cancelled at this stage");
+            }
+
+            order.Status = OrderStatus.Cancelled;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { order.Id, Status = order.Status.ToString() });
+        }
+
         // ADMIN: All orders + search
         [Authorize(Roles = "Admin")]
         [HttpGet]
@@ -90,7 +114,8 @@ namespace MiniStore.API.Controllers
             {
                 query = query.Where(o =>
                     o.User.UserName!.Contains(search) ||
-                    o.User.FullName!.Contains(search));
+                    o.User.FullName!.Contains(search) ||
+                    o.Id.ToString().Contains(search));
             }
 
             var orders = await query
@@ -140,6 +165,26 @@ namespace MiniStore.API.Controllers
                 order.Id,
                 Status = order.Status.ToString()
             });
+        }
+
+        //Admin Soft Delete Endpoint
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{orderId}")]
+        public async Task<IActionResult> DeleteOrder(Guid orderId)
+        {
+            var order = await _context.Orders
+                .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted);
+
+            if (order == null)
+                return NotFound();
+
+            if (order.Status != OrderStatus.Cancelled && order.Status != OrderStatus.Completed)
+                return BadRequest("Only cancelled or completed orders can be deleted");
+
+            order.IsDeleted = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { order.Id, Message = "Order deleted successfully" });
         }
     }
 }

@@ -53,5 +53,12 @@ namespace MiniStore.Infrastructure.Services
         {
             await _db.SaveChangesAsync();
         }
+
+        public async Task<User?> GetByRefreshTokenAsync(string refreshToken)
+        {
+            return await _db.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+        }
+
     }
 }

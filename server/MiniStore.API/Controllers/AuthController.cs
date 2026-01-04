@@ -67,17 +67,25 @@ namespace MiniStore.API.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> RefreshToken(string refreshToken)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
         {
-            var user = (await _users.GetAllUsersAsync())
-                       .FirstOrDefault(x => x.RefreshToken == refreshToken);
+            var user = await _users.GetByRefreshTokenAsync(dto.RefreshToken);
 
             if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
                 return Unauthorized("Invalid refresh token");
 
-            var newToken = _tokens.CreateToken(user);
+            var newAccessToken = _tokens.CreateToken(user);
 
-            return Ok(new { token = newToken });
+            user.RefreshToken = _users.CreateRefreshToken();
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+            await _users.SaveChangesAsync();
+
+            return Ok(new
+            {
+                token = newAccessToken,
+                refreshToken = user.RefreshToken
+            });
         }
 
         [Authorize]
