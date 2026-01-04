@@ -6,5 +6,11 @@ export const getMyOrders = async () => {
 };
 
 export const createOrder = async (items: any[]) => {
-  await axiosInstance.post("/orders", { items });
+  const payload = items.map((item) => ({
+    productId: item.id,
+    quantity: item.quantity,
+    price: item.price,
+  }));
+
+  await axiosInstance.post("/orders", { items: payload });
 };
