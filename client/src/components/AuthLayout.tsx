@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import DarkModeToggle from "./DarkModeToggle";
 import { motion } from "framer-motion";
 
 type Props = {
@@ -20,11 +19,11 @@ const AuthLayout = ({
   footerLinkHref,
 }: Props) => {
   return (
-    <div className="min-h-screen flex items-center justify-center
+    <div
+      className="min-h-screen flex items-center justify-center
                     bg-gradient-to-br from-indigo-100 to-purple-200
-                    dark:from-gray-900 dark:to-gray-800 px-4 relative">
-      <DarkModeToggle />
-
+                    dark:from-gray-900 dark:to-gray-800 px-4 relative"
+    >
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}

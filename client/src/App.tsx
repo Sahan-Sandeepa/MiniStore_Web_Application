@@ -14,46 +14,48 @@ import RequireRole from "./auth/RequireRole";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyOrders from "./pages/MyOrders";
 import AdminOrders from "./pages/AdminOrders";
-import CheckoutPage from "./components/orders/CheckoutPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Header />
+        <div className="min-h-screen flex flex-col">
+          <Header />
+          <main className="flex-1">
+            <Routes>
+              <Route
+                path="/admin"
+                element={
+                  <RequireRole role="Admin">
+                    <AdminDashboard />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <RequireRole role="Admin">
+                    <AdminOrders />
+                  </RequireRole>
+                }
+              />
 
-        <Routes>
-          <Route
-            path="/admin"
-            element={
-              <RequireRole role="Admin">
-                <AdminDashboard />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="/admin/orders"
-            element={
-              <RequireRole role="Admin">
-                <AdminOrders />
-              </RequireRole>
-            }
-          />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/orders" element={<MyOrders />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
 
-          <Route path="/products" element={<Products />} />
-          <Route path="/orders" element={<MyOrders />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </main>
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-
-        <Footer />
+          <Footer />
+        </div>
       </Router>
     </AuthProvider>
   );
 }
-
 export default App;

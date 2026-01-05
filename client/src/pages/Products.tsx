@@ -8,37 +8,35 @@ import {
 } from "../api/product";
 import { ProductCreateDto, ProductReadDto } from "../types/product";
 import { toast, Toaster } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../components/CartContext";
+import ProductForm from "../components/ProductForm";
+import ConfirmOrderModal from "../components/ConfirmOrderModal";
 
 export default function Products() {
+  const { role } = useAuth();
+  const { addToCart } = useCart();
+  const isAdmin = role === "Admin";
+  console.log(role);
   const [products, setProducts] = useState<ProductReadDto[]>([]);
   const [query, setQuery] = useState("");
-  const [form, setForm] = useState<ProductCreateDto>({
-    name: "",
-    description: "",
-    price: 0,
-    stock: 0,
-    category: "",
-  });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalAction, setModalAction] = useState<"delete" | "order" | null>(
+    null
+  );
+  const [selectedProduct, setSelectedProduct] = useState<ProductReadDto | null>(
+    null
+  );
+  const [formOpen, setFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductReadDto | null>(
     null
   );
-  const [editForm, setEditForm] = useState<ProductCreateDto | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const { role } = useAuth();
-  const isAdmin = role === "Admin";
-  const pageTitle = isAdmin ? "Admin Product Management" : "Products";
-  const { addToCart } = useCart();
 
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const data = await getProducts();
-      setProducts(data);
+      setProducts(await getProducts());
     } finally {
       setLoading(false);
     }
@@ -48,274 +46,238 @@ export default function Products() {
     loadProducts();
   }, []);
 
-  const handleCreate = async () => {
-    if (!form.name || !form.price || !form.stock) {
-      toast.error("Please fill in name, price, and stock!");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await createProduct(form);
-      toast.success("Product created!");
-      setForm({ name: "", description: "", price: 0, stock: 0, category: "" });
-      loadProducts();
-    } catch {
-      toast.error("Failed to create product");
-    } finally {
-      setLoading(false);
-    }
+  const handleAddToCart = (product: ProductReadDto) => {
+    if (product.stock <= 0) return;
+    setSelectedProduct(product);
+    setModalAction("order");
+    setModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    setLoading(true);
-    try {
-      await deleteProduct(id);
-      toast.success("Product deleted");
-      loadProducts();
-    } catch {
-      toast.error("Failed to delete product");
-    } finally {
-      setLoading(false);
-    }
+  const confirmAddToCart = () => {
+    if (!selectedProduct) return;
+    addToCart(selectedProduct);
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === selectedProduct.id ? { ...p, stock: p.stock - 1 } : p
+      )
+    );
+    toast.success("Added to cart");
+    setModalOpen(false);
+    setSelectedProduct(null);
   };
 
   const handleSearch = async () => {
     setLoading(true);
     try {
       if (!query) return loadProducts();
-      const data = await searchProducts(query);
-      setProducts(data);
+      setProducts(await searchProducts(query));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdate = async () => {
-    if (!editingProduct || !editForm) return;
-
-    if (!editForm.name || editForm.price <= 0 || editForm.stock < 0) {
-      toast.error("Invalid product details");
-      return;
-    }
-
+  const handleCreate = async (data: ProductCreateDto) => {
     setLoading(true);
     try {
-      await updateProduct(editingProduct.id, editForm);
+      await createProduct(data);
+      toast.success("Product created");
+      setFormOpen(false);
+      loadProducts();
+    } catch {
+      toast.error("Create failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async (data: ProductCreateDto) => {
+    if (!editingProduct) return;
+    setLoading(true);
+    try {
+      await updateProduct(editingProduct.id, data);
       toast.success("Product updated");
-      setIsEditOpen(false);
+      setFormOpen(false);
       setEditingProduct(null);
       loadProducts();
     } catch {
-      toast.error("Failed to update product");
+      toast.error("Update failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const openEdit = (product: ProductReadDto) => {
+  const handleDelete = (product: ProductReadDto) => {
+    setSelectedProduct(product);
+    setModalAction("delete");
+    setModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedProduct) return;
+    setLoading(true);
+    try {
+      await deleteProduct(selectedProduct.id);
+      toast.success("Product deleted");
+      loadProducts();
+    } catch {
+      toast.error("Delete failed");
+    } finally {
+      setModalOpen(false);
+      setSelectedProduct(null);
+      setModalAction(null);
+      setLoading(false);
+    }
+  };
+
+  const openEditForm = (product: ProductReadDto) => {
     setEditingProduct(product);
-    setEditForm({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
-      category: product.category,
-    });
-    setIsEditOpen(true);
+    setFormOpen(true);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Toaster position="top-right" />
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{pageTitle}</h1>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-3xl font-bold">
+            {isAdmin ? "Product Management" : "Products"}
+          </h1>
 
-      <div className="flex gap-2 mb-6">
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                     bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-        />
-        <button
-          onClick={handleSearch}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
-        >
-          Search
-        </button>
-      </div>
+          {isAdmin && (
+            <button
+              onClick={() => setFormOpen(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg"
+            >
+              + New Product
+            </button>
+          )}
+        </div>
 
-      {isAdmin && (
-        <div className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md space-y-4">
-          <h2 className="text-xl font-semibold">Create Product</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              placeholder="Name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                       bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-            />
-            <input
-              placeholder="Category"
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                       bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-            />
-            <input
-              type="number"
-              placeholder="Price"
-              value={form.price || ""}
-              onChange={(e) => setForm({ ...form, price: +e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                       bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-            />
-            <input
-              type="number"
-              placeholder="Stock"
-              value={form.stock || ""}
-              onChange={(e) => setForm({ ...form, stock: +e.target.value })}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                       bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-            />
-            <input
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              className="col-span-1 md:col-span-2 w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-                       bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow flex gap-2">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search products..."
+            className="flex-1 px-4 py-2 rounded-lg border dark:border-gray-700
+                       bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500"
+          />
           <button
-            onClick={handleCreate}
-            disabled={loading}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50"
+            onClick={handleSearch}
+            className="px-5 py-2 bg-indigo-600 text-white rounded-lg"
           >
-            {loading ? "Processing..." : "Create Product"}
+            Search
           </button>
+        </div>
+
+        {loading && (
+          <div className="text-center py-16 text-gray-500">
+            Loading products...
+          </div>
+        )}
+
+        {!loading && products.length === 0 && (
+          <div className="text-center py-16 text-gray-500">
+            No products found
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map((p) => (
+            <div
+              key={p.id}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow p-5 flex flex-col hover:shadow-lg transition"
+            >
+              <div className="flex justify-between">
+                <h3 className="font-semibold text-lg">{p.name}</h3>
+                <span className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-600 px-2 py-1 rounded-full">
+                  {p.category}
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">
+                {p.description}
+              </p>
+
+              <div className="flex justify-between items-center mt-4">
+                <span className="text-xl font-bold">${p.price.toFixed(2)}</span>
+                {isAdmin && (
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      p.stock > 0
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    Stock: {p.stock}
+                  </span>
+                )}
+              </div>
+
+              {!isAdmin && (
+                <button
+                  disabled={p.stock <= 0}
+                  onClick={() => handleAddToCart(p)}
+                  className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {p.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                </button>
+              )}
+
+              {isAdmin && (
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => openEditForm(p)}
+                    className="flex-1 bg-gray-200 dark:bg-gray-700 py-2 rounded-lg"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p)}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+      {formOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <ProductForm
+            initialData={editingProduct ?? undefined}
+            onSubmit={editingProduct ? handleUpdate : handleCreate}
+            onCancel={() => {
+              setFormOpen(false);
+              setEditingProduct(null);
+            }}
+          />
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((p) => (
-          <div
-            key={p.id}
-            className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-md flex flex-col justify-between"
-          >
-            <div>
-              <h3 className="font-bold text-lg">{p.name}</h3>
-              <p className="text-gray-500 dark:text-gray-400">{p.category}</p>
-              <p className="mt-1">${p.price.toFixed(2)}</p>
-              <p className="mt-1">Stock: {p.stock}</p>
-              <p className="mt-1 text-sm">{p.description}</p>
-            </div>
-
-            {isAdmin && (
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => openEdit(p)}
-                  className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(p.id)}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
-
-            {!isAdmin && (
-              <button
-                onClick={() => addToCart(p)}
-                className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg"
-              >
-                Add to Cart
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {isEditOpen && editForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl p-6 space-y-4 shadow-xl">
-            <h2 className="text-xl font-semibold">Edit Product</h2>
-
-            <input
-              value={editForm.name}
-              onChange={(e) =>
-                setEditForm({ ...editForm, name: e.target.value })
-              }
-              placeholder="Name"
-              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
-            />
-
-            <input
-              value={editForm.category}
-              onChange={(e) =>
-                setEditForm({ ...editForm, category: e.target.value })
-              }
-              placeholder="Category"
-              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
-            />
-
-            <input
-              type="number"
-              value={editForm.price}
-              onChange={(e) =>
-                setEditForm({ ...editForm, price: +e.target.value })
-              }
-              placeholder="Price"
-              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
-            />
-
-            <input
-              type="number"
-              value={editForm.stock}
-              onChange={(e) =>
-                setEditForm({ ...editForm, stock: +e.target.value })
-              }
-              placeholder="Stock"
-              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
-            />
-
-            <textarea
-              value={editForm.description}
-              onChange={(e) =>
-                setEditForm({ ...editForm, description: e.target.value })
-              }
-              placeholder="Description"
-              className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700"
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setIsEditOpen(false)}
-                className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpdate}
-                disabled={loading}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50"
-              >
-                {loading ? "Saving..." : "Save Changes"}
-              </button>
-            </div>
-          </div>
-        </div>
+      {modalOpen && selectedProduct && modalAction && (
+        <ConfirmOrderModal
+          open={modalOpen}
+          total={selectedProduct.price}
+          onCancel={() => {
+            setModalOpen(false);
+            setSelectedProduct(null);
+            setModalAction(null);
+          }}
+          onConfirm={
+            modalAction === "delete" ? confirmDelete : confirmAddToCart
+          }
+          message={
+            modalAction === "delete"
+              ? `Are you sure you want to delete "${selectedProduct.name}"?`
+              : `Confirm adding "${
+                  selectedProduct.name
+                }" to cart for $${selectedProduct.price.toFixed(2)}?`
+          }
+        />
       )}
     </div>
   );
