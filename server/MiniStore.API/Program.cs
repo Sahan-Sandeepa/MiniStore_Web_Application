@@ -10,6 +10,7 @@ using System.Text;
 
 // Load environment variables from .env 
 DotNetEnv.Env.Load(@"../../.env");
+Console.WriteLine($"DB: {Environment.GetEnvironmentVariable("DB_CONNECTION")}");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +103,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
     await AdminSeeder.SeedAdminAsync(db);
 }
 
