@@ -1,9 +1,11 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../auth/AuthContext";
+import DarkModeToggle from "./DarkModeToggle";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { token, role, logout } = useAuth();
   const loggedIn = !!token;
 
@@ -13,56 +15,93 @@ export default function Header() {
     navigate("/login");
   };
 
+  const isActive = (path: string) => location.pathname.startsWith(path);
+
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-md px-6 py-4 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <h1
-          className="text-xl font-bold cursor-pointer text-indigo-600 dark:text-indigo-400"
+    <header className="bg-white dark:bg-gray-900 border-b dark:border-gray-700">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div
+          className="flex items-center gap-2 cursor-pointer"
           onClick={() => navigate(loggedIn ? "/products" : "/login")}
         >
-          MiniStore
-        </h1>
-      </div>
+          <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+            MiniStore
+          </span>
+        </div>
 
-      <nav className="flex items-center gap-4">
-        {!loggedIn ? (
-          <>
-            <button onClick={() => navigate("/login")}>Login</button>
-            <button onClick={() => navigate("/register")}>Register</button>
-          </>
-        ) : (
-          <>
-            {role === "Admin" && (
-              <button onClick={() => navigate("/admin")}>
-                Admin Dashboard
-              </button>
-            )}
+        {loggedIn && (
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+            <button
+              onClick={() => navigate("/products")}
+              className={`hover:text-indigo-500 ${
+                isActive("/products") && "text-indigo-600"
+              }`}
+            >
+              Products
+            </button>
+
             {role === "Customer" && (
               <>
                 <button
                   onClick={() => navigate("/orders")}
-                  className="hover:text-indigo-500"
+                  className={`hover:text-indigo-500 ${
+                    isActive("/orders") && "text-indigo-600"
+                  }`}
                 >
                   My Orders
                 </button>
                 <button
                   onClick={() => navigate("/checkout")}
-                  className="hover:text-indigo-500"
+                  className={`hover:text-indigo-500 ${
+                    isActive("/checkout") && "text-indigo-600"
+                  }`}
                 >
                   Checkout
                 </button>
               </>
             )}
-            <button onClick={() => navigate("/products")}>Products</button>
+
+            {role === "Admin" && (
+              <button
+                onClick={() => navigate("/admin")}
+                className={`hover:text-indigo-500 ${
+                  isActive("/admin") && "text-indigo-600"
+                }`}
+              >
+                Admin Dashboard
+              </button>
+            )}
+          </nav>
+        )}
+
+        <div className="flex items-center gap-4">
+          <DarkModeToggle />
+
+          {!loggedIn ? (
+            <>
+              <button
+                onClick={() => navigate("/login")}
+                className="text-sm font-medium hover:text-indigo-500"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => navigate("/register")}
+                className="text-sm font-medium bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+              >
+                Sign up
+              </button>
+            </>
+          ) : (
             <button
               onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg"
+              className="text-sm text-gray-500 hover:text-red-500"
             >
               Logout
             </button>
-          </>
-        )}
-      </nav>
+          )}
+        </div>
+      </div>
     </header>
   );
 }
