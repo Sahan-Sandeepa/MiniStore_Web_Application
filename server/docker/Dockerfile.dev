@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+WORKDIR /app
+EXPOSE 8080
+
+# Prevents file-watch issues on Windows/WSL
+ENV DOTNET_USE_POLLING_FILE_WATCHER=1

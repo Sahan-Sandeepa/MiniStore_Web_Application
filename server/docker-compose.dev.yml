@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ministore-postgres-dev
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    container_name: ministore-redis-dev
+    ports:
+      - "${REDIS_PORT}:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.5
+    container_name: ministore-elasticsearch-dev
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+    ports:
+      - "${ELASTIC_PORT}:9200"
+    volumes:
+      - esdata-dev:/usr/share/elasticsearch/data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: ministore-api-dev
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "5298:8080"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - elasticsearch
+    command: >
+      sh -c "dotnet watch run
+      --project MiniStore.API/MiniStore.API.csproj
+      --urls http://0.0.0.0:8080"
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: 1
+
+volumes:
+  pgdata-dev:
+  esdata-dev:

@@ -6,14 +6,14 @@ This is the backend server for **MiniStore**, built with ASP.NET Core 8, using *
 
 ## 📂 Project Structure
 
-    server/
-    ├── MiniStore.API/ # ASP.NET API project
-    ├── MiniStore.Core/ # Core domain & business logic
-    ├── MiniStore.Infrastructure/ # Data access, repositories, EF Core
-    ├── Dockerfile # Dockerfile for building the API
-    ├── docker-compose.yml # Docker Compose setup
-    ├── .env # Environment variables
-    └── README.md
+        server/
+        ├── MiniStore.API/              # ASP.NET Core API project
+        ├── MiniStore.Core/             # Core domain & business logic
+        ├── MiniStore.Infrastructure/   # Data access, repositories, EF Core
+        ├── Dockerfile                  # Multi-stage Dockerfile for API
+        ├── docker-compose.yml          # Docker Compose (development)
+        ├── .env                        # Environment variables
+        └── README.md
 
 ---
 
@@ -22,7 +22,7 @@ This is the backend server for **MiniStore**, built with ASP.NET Core 8, using *
     - [Docker](https://www.docker.com/get-started)
     - [Docker Compose](https://docs.docker.com/compose/install/)
     - Optional: [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) (for local dev)
-    - Ensure ports **5298**, **5432**, **6379**, and **9200** are free
+    - Ensure ports **5298 – API**, **5432 – PostgreSQL**, **6379 – Redis**, and **9200 – Elasticsearch** are free
 
 ---
 
@@ -45,8 +45,25 @@ This is the backend server for **MiniStore**, built with ASP.NET Core 8, using *
     2. Build and start all containers:
 
     docker compose up --build
-    Verify containers are running:
 
+    This will start:
+
+    ASP.NET Core API (with dotnet watch / live reload)
+    PostgreSQL
+    Redis
+    Elasticsearch
+
+    3. For Dev Mode with Live Reload: docker compose -p ministore-dev -f docker-compose.dev.yml up
+    4. For Production Mode: docker compose -p ministore-prod -f docker-compose.prod.yml up -d
+
+### 🔥 Live Reload (Hot Reload)
+
+    Live reload is enabled by default using `dotnet watch`
+
+    To disable live reload, set the environment variable in `docker-compose.yml`:
+    DOTNET_USE_POLLING_FILE_WATCHER=1
+
+    Verify containers are running:
     docker ps
     API: http://localhost:{PORT_NO}
 
@@ -63,8 +80,9 @@ This is the backend server for **MiniStore**, built with ASP.NET Core 8, using *
     ⚠️ Warning: This deletes all stored data.
 
     Remove dangling Docker images & cache
-    docker system prune -a
+    docker system prune -af --volumes
     docker volume prune
+
     Frees up space if builds and old images accumulate.
 
 🔧 Dockerfile Overview
