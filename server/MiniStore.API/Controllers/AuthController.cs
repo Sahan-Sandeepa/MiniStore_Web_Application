@@ -50,6 +50,9 @@ namespace MiniStore.API.Controllers
             if (!_users.VerifyPassword(dto.Password, user.PasswordHash, user.PasswordSalt))
                 return Unauthorized("Invalid credentials");
 
+            if (user.Status != UserStatus.Active)
+                return Unauthorized("Account is disabled or deleted");
+
             var accessToken = _tokens.CreateToken(user);
             var refreshToken = _users.CreateRefreshToken();
 

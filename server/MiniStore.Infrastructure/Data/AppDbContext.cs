@@ -33,6 +33,9 @@ namespace MiniStore.Infrastructure.Data
 
             modelBuilder.Entity<OrderItem>()
                 .HasQueryFilter(oi => !oi.Order.IsDeleted);
+
+            modelBuilder.Entity<User>()
+                .HasQueryFilter(u => u.Status != UserStatus.Disabled);
         }
     }
 }

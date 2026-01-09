@@ -4,6 +4,7 @@ using MiniStore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using MiniStore.Core.Enums;
 
 namespace MiniStore.Infrastructure.Services
 {
@@ -58,6 +59,56 @@ namespace MiniStore.Infrastructure.Services
         {
             return await _db.Users
                 .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+        }
+
+        public async Task<User?> GetByIdAsync(Guid id)
+        {
+            return await _db.Users.FindAsync(id);
+        }
+
+        public async Task DisableUserAsync(Guid id)
+        {
+            var user = await GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            if (user.Status == UserStatus.Deleted)
+                throw new InvalidOperationException("Deleted users cannot be disabled");
+
+            user.Status = UserStatus.Disabled;
+            user.DeletedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task EnableUserAsync(Guid id)
+        {
+            var user = await GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            if (user.Status == UserStatus.Deleted)
+                throw new InvalidOperationException("Deleted users cannot be enabled");
+
+            user.Status = UserStatus.Active;
+            user.DeletedAt = null;
+
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task SoftDeleteUserAsync(Guid id)
+        {
+            var user = await GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            if (user.Status == UserStatus.Deleted)
+                throw new InvalidOperationException("User already deleted");
+
+            user.Status = UserStatus.Deleted;
+            user.DeletedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
         }
 
     }

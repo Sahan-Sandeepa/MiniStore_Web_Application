@@ -10,6 +10,10 @@ namespace MiniStore.Core.Interfaces
         string CreateRefreshToken();
         Task<List<User>> GetAllUsersAsync();
 
+        Task DisableUserAsync(Guid id);
+        Task EnableUserAsync(Guid id);
+        Task SoftDeleteUserAsync(Guid id);
+
         Task SaveChangesAsync();
 
         Task<User?> GetByRefreshTokenAsync(string refreshToken);

@@ -19,4 +19,25 @@ public class AdminUsersController : ControllerBase
     {
         return Ok(await _users.GetAllUsersAsync());
     }
+
+    [HttpPut("{id}/disable")]
+    public async Task<IActionResult> DisableUser(Guid id)
+    {
+        await _users.DisableUserAsync(id);
+        return NoContent();
+    }
+
+    [HttpPut("{id}/enable")]
+    public async Task<IActionResult> EnableUser(Guid id)
+    {
+        await _users.EnableUserAsync(id);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        await _users.SoftDeleteUserAsync(id);
+        return NoContent();
+    }
 }
