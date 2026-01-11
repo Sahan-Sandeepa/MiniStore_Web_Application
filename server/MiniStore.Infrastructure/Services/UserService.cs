@@ -4,6 +4,7 @@ using MiniStore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using MiniStore.Core.Enums;
 
 namespace MiniStore.Infrastructure.Services
 {
@@ -44,9 +45,11 @@ namespace MiniStore.Infrastructure.Services
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
+        public async Task<List<User>> GetAllNonAdminUsersAsync()
         {
-            return await _db.Users.ToListAsync();
+            return await _db.Users
+                .Where(u => u.Role != UserRole.Admin && u.Status != UserStatus.Deleted)
+                .ToListAsync();
         }
 
         public async Task SaveChangesAsync()
@@ -58,6 +61,44 @@ namespace MiniStore.Infrastructure.Services
         {
             return await _db.Users
                 .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+        }
+
+        public async Task<User?> GetByIdAsync(Guid id)
+        {
+            return await _db.Users.FindAsync(id);
+        }
+
+        public async Task DisableUserAsync(Guid userId)
+        {
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) throw new Exception("User not found");
+
+            user.Status = UserStatus.Disabled;
+            user.DeletedAt = DateTime.UtcNow;
+        }
+
+        public async Task EnableUserAsync(Guid userId)
+        {
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) throw new Exception("User not found");
+
+            user.Status = UserStatus.Active;
+            user.DeletedAt = null;
+        }
+
+        public async Task SoftDeleteUserAsync(Guid userId, Guid currentAdminId)
+        {
+            if (userId == currentAdminId)
+                throw new Exception("Admin cannot delete themselves");
+
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) throw new Exception("User not found");
+
+            if (user.Role == UserRole.Admin)
+                throw new Exception("Cannot delete admin");
+
+            user.Status = UserStatus.Deleted;
+            user.DeletedAt = DateTime.UtcNow;
         }
 
     }

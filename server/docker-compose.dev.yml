@@ -46,6 +46,7 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
+      - nuget-packages:/root/.nuget/packages
     ports:
       - "5298:8080"
     env_file:
@@ -64,3 +65,4 @@ services:
 volumes:
   pgdata-dev:
   esdata-dev:
+  nuget-packages:

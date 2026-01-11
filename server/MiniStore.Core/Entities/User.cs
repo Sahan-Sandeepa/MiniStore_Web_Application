@@ -13,8 +13,11 @@ namespace MiniStore.Core.Entities
         public required byte[] PasswordSalt { get; set; }
 
         public UserRole Role { get; set; } = UserRole.Customer;
+        public UserStatus Status { get; set; } = UserStatus.Active;
 
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiry { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? DeletedAt { get; set; }
     }
 }

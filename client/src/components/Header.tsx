@@ -71,6 +71,30 @@ export default function Header() {
                 Admin Dashboard
               </button>
             )}
+
+            {role === "Customer" && (
+              <button
+                onClick={async () => {
+                  // eslint-disable-next-line no-restricted-globals
+                  if (!confirm("This action cannot be undone. Continue?"))
+                    return;
+
+                  await fetch("/api/users/me/deactivate", {
+                    method: "PUT",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  });
+
+                  logout();
+                  toast.success("Account deleted");
+                  navigate("/login");
+                }}
+                className="text-red-600 hover:underline"
+              >
+                Delete My Account
+              </button>
+            )}
           </nav>
         )}
 

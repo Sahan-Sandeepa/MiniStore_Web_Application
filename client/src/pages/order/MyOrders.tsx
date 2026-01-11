@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { cancelOrder, getMyOrders } from "../api/orders";
-import { OrderReadDto } from "../types/order";
+import { cancelOrder, getMyOrders } from "../../api/orders";
+import { OrderReadDto } from "../../types/order";
 import { toast, Toaster } from "react-hot-toast";
 
 const statusStyles: Record<string, string> = {

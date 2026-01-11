@@ -8,7 +8,10 @@ namespace MiniStore.Core.Interfaces
         Task<User> CreateUserAsync(User user, string password);
         bool VerifyPassword(string password, byte[] hash, byte[] salt);
         string CreateRefreshToken();
-        Task<List<User>> GetAllUsersAsync();
+        Task<List<User>> GetAllNonAdminUsersAsync();
+        Task DisableUserAsync(Guid userId);
+        Task EnableUserAsync(Guid userId);
+        Task SoftDeleteUserAsync(Guid userId, Guid currentAdminId);
 
         Task SaveChangesAsync();
 

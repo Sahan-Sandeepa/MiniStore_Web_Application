@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import AuthLayout from "../components/AuthLayout";
-import { login } from "../api/auth";
-import { getRoleFromToken } from "../utils/jwt";
-import { useAuth } from "../auth/AuthContext";
+import AuthLayout from "../../components/AuthLayout";
+import { login } from "../../api/auth";
+import { getRoleFromToken } from "../../utils/jwt";
+import { useAuth } from "../../auth/AuthContext";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const Login = () => {
