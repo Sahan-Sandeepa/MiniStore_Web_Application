@@ -45,9 +45,11 @@ namespace MiniStore.Infrastructure.Services
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
+        public async Task<List<User>> GetAllNonAdminUsersAsync()
         {
-            return await _db.Users.ToListAsync();
+            return await _db.Users
+                .Where(u => u.Role != UserRole.Admin && u.Status != UserStatus.Deleted)
+                .ToListAsync();
         }
 
         public async Task SaveChangesAsync()
@@ -66,49 +68,37 @@ namespace MiniStore.Infrastructure.Services
             return await _db.Users.FindAsync(id);
         }
 
-        public async Task DisableUserAsync(Guid id)
+        public async Task DisableUserAsync(Guid userId)
         {
-            var user = await GetByIdAsync(id);
-            if (user == null)
-                throw new KeyNotFoundException("User not found");
-
-            if (user.Status == UserStatus.Deleted)
-                throw new InvalidOperationException("Deleted users cannot be disabled");
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) throw new Exception("User not found");
 
             user.Status = UserStatus.Disabled;
             user.DeletedAt = DateTime.UtcNow;
-
-            await _db.SaveChangesAsync();
         }
 
-        public async Task EnableUserAsync(Guid id)
+        public async Task EnableUserAsync(Guid userId)
         {
-            var user = await GetByIdAsync(id);
-            if (user == null)
-                throw new KeyNotFoundException("User not found");
-
-            if (user.Status == UserStatus.Deleted)
-                throw new InvalidOperationException("Deleted users cannot be enabled");
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) throw new Exception("User not found");
 
             user.Status = UserStatus.Active;
             user.DeletedAt = null;
-
-            await _db.SaveChangesAsync();
         }
 
-        public async Task SoftDeleteUserAsync(Guid id)
+        public async Task SoftDeleteUserAsync(Guid userId, Guid currentAdminId)
         {
-            var user = await GetByIdAsync(id);
-            if (user == null)
-                throw new KeyNotFoundException("User not found");
+            if (userId == currentAdminId)
+                throw new Exception("Admin cannot delete themselves");
 
-            if (user.Status == UserStatus.Deleted)
-                throw new InvalidOperationException("User already deleted");
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null) throw new Exception("User not found");
+
+            if (user.Role == UserRole.Admin)
+                throw new Exception("Cannot delete admin");
 
             user.Status = UserStatus.Deleted;
             user.DeletedAt = DateTime.UtcNow;
-
-            await _db.SaveChangesAsync();
         }
 
     }

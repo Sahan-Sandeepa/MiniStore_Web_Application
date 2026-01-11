@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 // Load environment variables from .env 
-DotNetEnv.Env.Load(@"../../.env");
+DotNetEnv.Env.Load(@"../.env");
 Console.WriteLine($"DB: {Environment.GetEnvironmentVariable("DB_CONNECTION")}");
 
 var builder = WebApplication.CreateBuilder(args);

@@ -5,16 +5,17 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Products from "./pages/Products";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Products from "./pages//product/Products";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import RequireRole from "./auth/RequireRole";
-import AdminDashboard from "./pages/AdminDashboard";
-import MyOrders from "./pages/MyOrders";
-import AdminOrders from "./pages/AdminOrders";
-import CheckoutPage from "./pages/CheckoutPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import MyOrders from "./pages/order/MyOrders";
+import AdminOrders from "./pages/admin/AdminOrders";
+import CheckoutPage from "./pages/order/CheckoutPage";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 function App() {
   return (
@@ -37,6 +38,14 @@ function App() {
                 element={
                   <RequireRole role="Admin">
                     <AdminOrders />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <RequireRole role="Admin">
+                    <AdminUsers />
                   </RequireRole>
                 }
               />

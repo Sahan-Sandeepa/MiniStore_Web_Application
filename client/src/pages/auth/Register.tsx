@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import AuthLayout from "../components/AuthLayout";
-import { register } from "../api/auth";
+import AuthLayout from "../../components/AuthLayout";
+import { register } from "../../api/auth";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const Register = () => {

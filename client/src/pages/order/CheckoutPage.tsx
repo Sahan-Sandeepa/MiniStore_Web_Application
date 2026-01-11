@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useCart } from "../components/CartContext";
+import { useCart } from "../../components/CartContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import ConfirmOrderModal from "../components/ConfirmOrderModal";
-import { createOrder } from "../api/orders";
+import ConfirmOrderModal from "../../components/ConfirmOrderModal";
+import { createOrder } from "../../api/orders";
 
 export default function CheckoutPage() {
   const { items, clearCart, removeFromCart } = useCart();

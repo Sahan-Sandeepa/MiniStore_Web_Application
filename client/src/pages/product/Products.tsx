@@ -5,13 +5,13 @@ import {
   deleteProduct,
   searchProducts,
   updateProduct,
-} from "../api/product";
-import { ProductCreateDto, ProductReadDto } from "../types/product";
+} from "../../api/product";
+import { ProductCreateDto, ProductReadDto } from "../../types/product";
 import { toast, Toaster } from "react-hot-toast";
-import { useAuth } from "../auth/AuthContext";
-import { useCart } from "../components/CartContext";
-import ProductForm from "../components/ProductForm";
-import ConfirmOrderModal from "../components/ConfirmOrderModal";
+import { useAuth } from "../../auth/AuthContext";
+import { useCart } from "../../components/CartContext";
+import ProductForm from "../../components/ProductForm";
+import ConfirmOrderModal from "../../components/ConfirmOrderModal";
 
 export default function Products() {
   const { role } = useAuth();

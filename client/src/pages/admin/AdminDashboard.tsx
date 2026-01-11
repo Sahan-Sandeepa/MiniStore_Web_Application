@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProducts } from "../api/product";
-import { ProductReadDto } from "../types/product";
+import { getProducts } from "../../api/product";
+import { ProductReadDto } from "../../types/product";
 import { toast } from "react-hot-toast";
 import {
   ChartBarIcon,
   PlusCircleIcon,
   ClipboardIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 
 export default function AdminDashboard() {
@@ -123,6 +124,16 @@ export default function AdminDashboard() {
           <div>
             <h3 className="text-lg font-semibold">Manage Orders</h3>
             <p className="text-sm">View and update customer orders</p>
+          </div>
+        </div>
+        <div
+          onClick={() => navigate("/admin/users")}
+          className="cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-2xl p-6 shadow flex items-center gap-4 transition"
+        >
+          <UsersIcon className="h-10 w-10" />
+          <div>
+            <h3 className="text-lg font-semibold">Manage Users</h3>
+            <p className="text-sm">Enable, disable or delete users</p>
           </div>
         </div>
       </div>

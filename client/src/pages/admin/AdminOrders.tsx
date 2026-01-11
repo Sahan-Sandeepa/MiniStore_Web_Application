@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../api/axios";
-import { AdminOrderReadDto } from "../types/order";
+import axiosInstance from "../../api/axios";
+import { AdminOrderReadDto } from "../../types/order";
 import { Toaster, toast } from "react-hot-toast";
 
 const ORDER_STATUSES = [

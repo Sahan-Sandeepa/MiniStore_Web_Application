@@ -23,16 +23,23 @@ namespace MiniStore.API.Controllers
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return NotFound();
+            if (user.Role == UserRole.Admin)
+                return BadRequest("Admin account cannot be deactivated");
 
             if (user.Status == UserStatus.Disabled)
                 return BadRequest("Account is already deactivated");
 
             user.Status = UserStatus.Disabled;
             user.DeletedAt = DateTime.UtcNow;
+            user.RefreshToken = null;
+            user.RefreshTokenExpiry = DateTime.MinValue;
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Account deactivated successfully" });
+            return Ok(new
+            {
+                message = "Account deactivated successfully"
+            });
         }
     }
 }
