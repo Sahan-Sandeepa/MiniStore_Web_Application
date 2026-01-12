@@ -7,15 +7,27 @@ import {
   deleteUser,
 } from "../../api/adminUsers";
 import { AdminUserDto } from "../../types/user";
+import ConfirmOrderModal from "../../components/ConfirmOrderModal";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<AdminUserDto[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<AdminUserDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [targetUser, setTargetUser] = useState<AdminUserDto | null>(null);
+  const [action, setAction] = useState<"disable" | "enable" | "delete" | null>(
+    null
+  );
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const loadUsers = async () => {
     setLoading(true);
     try {
-      setUsers(await getAllUsers());
+      const data = await getAllUsers();
+      setUsers(data);
+      setFilteredUsers(data);
     } catch {
       toast.error("Failed to load users");
     } finally {
@@ -27,72 +39,181 @@ export default function AdminUsers() {
     loadUsers();
   }, []);
 
-  const handleDisable = async (id: string) => {
-    await disableUser(id);
-    toast.success("User disabled");
-    loadUsers();
+  useEffect(() => {
+    let filtered = [...users];
+
+    if (search) {
+      filtered = filtered.filter((u) =>
+        u.userName.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "All") {
+      filtered = filtered.filter((u) => u.status === statusFilter);
+    }
+
+    setFilteredUsers(filtered);
+  }, [search, statusFilter, users]);
+
+  const openModal = (
+    user: AdminUserDto,
+    actionType: "disable" | "enable" | "delete"
+  ) => {
+    setTargetUser(user);
+    setAction(actionType);
+    setModalOpen(true);
   };
 
-  const handleEnable = async (id: string) => {
-    await enableUser(id);
-    toast.success("User enabled");
-    loadUsers();
+  const handleConfirm = async () => {
+    if (!targetUser || !action) return;
+
+    try {
+      if (action === "disable") {
+        await disableUser(targetUser.id);
+        toast.success("User disabled");
+      }
+
+      if (action === "enable") {
+        await enableUser(targetUser.id);
+        toast.success("User enabled");
+      }
+
+      if (action === "delete") {
+        await deleteUser(targetUser.id);
+        toast.success("User deleted");
+      }
+
+      loadUsers();
+    } catch {
+      toast.error("Action failed");
+    } finally {
+      setModalOpen(false);
+    }
   };
 
-  const handleDelete = async (id: string) => {
-    // eslint-disable-next-line no-restricted-globals
-    if (!confirm("Permanently delete this user?")) return;
-    await deleteUser(id);
-    toast.success("User deleted");
-    loadUsers();
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Active":
+        return (
+          <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 text-sm font-semibold">
+            Active
+          </span>
+        );
+      case "Disabled":
+        return (
+          <span className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 text-sm font-semibold">
+            Disabled
+          </span>
+        );
+      case "Deleted":
+        return (
+          <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100 text-sm font-semibold">
+            Deleted
+          </span>
+        );
+      default:
+        return <span>{status}</span>;
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-4 py-8 transition-colors duration-300">
       <Toaster position="top-right" />
+
+      <ConfirmOrderModal
+        open={modalOpen}
+        total={0}
+        title={
+          action === "delete"
+            ? "Delete User"
+            : action === "disable"
+            ? "Disable User"
+            : "Enable User"
+        }
+        message={
+          action === "delete"
+            ? "This user will be permanently removed. This action cannot be undone."
+            : action === "disable"
+            ? "This user will be disabled and unable to log in."
+            : "This user will be re-enabled."
+        }
+        confirmText={
+          action === "delete"
+            ? "Delete"
+            : action === "disable"
+            ? "Disable"
+            : "Enable"
+        }
+        variant={action === "delete" ? "danger" : "default"}
+        onConfirm={handleConfirm}
+        onCancel={() => setModalOpen(false)}
+      />
 
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
           User Management
         </h1>
 
-        {loading && <p className="text-gray-500">Loading users...</p>}
+        <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center">
+          <input
+            type="text"
+            placeholder="Search by username..."
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-        {!loading && (
-          <div className="overflow-x-auto hidden md:block">
-            <table className="min-w-full bg-white dark:bg-gray-800 rounded-2xl shadow">
+          <select
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Disabled">Disabled</option>
+            <option value="Deleted">Deleted</option>
+          </select>
+        </div>
+
+        {loading ? (
+          <p className="text-gray-500 dark:text-gray-400">Loading users...</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y divide-gray-200 dark:divide-gray-700">
               <thead>
-                <tr className="border-b dark:border-gray-700 text-left">
-                  <th className="px-6 py-4">Username</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Actions</th>
+                <tr className="bg-gray-100 dark:bg-gray-700">
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    Username
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id} className="border-b dark:border-gray-700">
-                    <td className="px-6 py-4">{u.userName}</td>
-                    <td className="px-6 py-4">{u.role}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm
-                          ${
-                            u.status === "Active"
-                              ? "bg-green-100 text-green-700"
-                              : u.status === "Disabled"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                      >
-                        {u.status}
-                      </span>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredUsers.map((u) => (
+                  <tr
+                    key={u.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-gray-800 dark:text-gray-100 font-medium">
+                      {u.userName}
                     </td>
-                    <td className="px-6 py-4 flex gap-2">
+                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
+                      {u.role}
+                    </td>
+                    <td className="px-6 py-4">{getStatusBadge(u.status)}</td>
+                    <td className="px-6 py-4 flex flex-wrap gap-2">
                       {u.status === "Active" && (
                         <button
-                          onClick={() => handleDisable(u.id)}
-                          className="px-3 py-1 bg-yellow-500 text-white rounded-lg"
+                          onClick={() => openModal(u, "disable")}
+                          className="px-3 py-1 rounded-md bg-yellow-500 hover:bg-yellow-600 text-white transition-colors text-sm"
                         >
                           Disable
                         </button>
@@ -100,70 +221,38 @@ export default function AdminUsers() {
 
                       {u.status === "Disabled" && (
                         <button
-                          onClick={() => handleEnable(u.id)}
-                          className="px-3 py-1 bg-green-600 text-white rounded-lg"
+                          onClick={() => openModal(u, "enable")}
+                          className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-600 text-white transition-colors text-sm"
                         >
                           Enable
                         </button>
                       )}
 
-                      <button
-                        onClick={() => handleDelete(u.id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded-lg"
-                      >
-                        Delete
-                      </button>
+                      {u.status !== "Deleted" && (
+                        <button
+                          onClick={() => openModal(u, "delete")}
+                          className="px-3 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white transition-colors text-sm"
+                        >
+                          Delete
+                        </button>
+                      )}
+
+                      {u.status === "Deleted" && (
+                        <span className="text-gray-400 dark:text-gray-300 text-sm italic">
+                          Deleted (read-only)
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
 
-        {/* Mobile cards */}
-        {!loading && (
-          <div className="md:hidden space-y-4">
-            {users.map((u) => (
-              <div
-                key={u.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow space-y-3"
-              >
-                <div className="flex justify-between">
-                  <span className="font-semibold">{u.userName}</span>
-                  <span className="text-sm">{u.role}</span>
-                </div>
-
-                <span className="text-sm">{u.status}</span>
-
-                <div className="flex gap-2">
-                  {u.status === "Active" && (
-                    <button
-                      onClick={() => handleDisable(u.id)}
-                      className="flex-1 bg-yellow-500 text-white py-2 rounded-lg"
-                    >
-                      Disable
-                    </button>
-                  )}
-
-                  {u.status === "Disabled" && (
-                    <button
-                      onClick={() => handleEnable(u.id)}
-                      className="flex-1 bg-green-600 text-white py-2 rounded-lg"
-                    >
-                      Enable
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => handleDelete(u.id)}
-                    className="flex-1 bg-red-600 text-white py-2 rounded-lg"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+            {filteredUsers.length === 0 && (
+              <p className="text-gray-500 dark:text-gray-400 mt-4 text-center">
+                No users found.
+              </p>
+            )}
           </div>
         )}
       </div>

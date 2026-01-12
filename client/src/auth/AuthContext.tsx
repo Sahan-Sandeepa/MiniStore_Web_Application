@@ -1,11 +1,12 @@
 import { createContext, useContext, useState } from "react";
-import { getRoleFromToken } from "../utils/jwt";
+import { getRoleFromToken, getUserIdFromToken } from "../utils/jwt";
 
 type Role = "Admin" | "Customer";
 
 type AuthContextType = {
   token: string | null;
   role: Role | null;
+  userId: string | null;
   login: (token: string) => void;
   logout: () => void;
 };
@@ -21,20 +22,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     token ? getRoleFromToken(token) : null
   );
 
+  const [userId, setUserId] = useState<string | null>(
+    token ? getUserIdFromToken(token) : null
+  );
+
   const login = (token: string) => {
     localStorage.setItem("token", token);
     setToken(token);
+    setUserId(getUserIdFromToken(token));
     setRole(getRoleFromToken(token));
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
+    setUserId(null);
     setRole(null);
   };
 
   return (
-    <AuthContext.Provider value={{ token, role, login, logout }}>
+    <AuthContext.Provider value={{ token, userId, role, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
