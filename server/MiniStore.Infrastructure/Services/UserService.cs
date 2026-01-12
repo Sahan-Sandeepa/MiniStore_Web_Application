@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using MiniStore.Core.Enums;
+using MiniStore.Core.DTOs;
 
 namespace MiniStore.Infrastructure.Services
 {
@@ -45,10 +46,21 @@ namespace MiniStore.Infrastructure.Services
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
 
-        public async Task<List<User>> GetAllNonAdminUsersAsync()
+        public async Task<List<AdminUserDto>> GetAllNonAdminUsersAsync()
         {
             return await _db.Users
-                .Where(u => u.Role != UserRole.Admin && u.Status != UserStatus.Deleted)
+                .IgnoreQueryFilters()
+                .Where(u => u.Role != UserRole.Admin)
+                .Select(u => new AdminUserDto
+                {
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    FullName = u.FullName,
+                    Role = u.Role.ToString(),
+                    Status = u.Status.ToString(),
+                    CreatedAt = u.CreatedAt,
+                    DeletedAt = u.DeletedAt
+                })
                 .ToListAsync();
         }
 
@@ -70,20 +82,38 @@ namespace MiniStore.Infrastructure.Services
 
         public async Task DisableUserAsync(Guid userId)
         {
-            var user = await _db.Users.FindAsync(userId);
-            if (user == null) throw new Exception("User not found");
+            var user = await _db.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (user.Status == UserStatus.Deleted)
+                throw new Exception("Cannot disable a deleted user");
 
             user.Status = UserStatus.Disabled;
             user.DeletedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
         }
 
         public async Task EnableUserAsync(Guid userId)
         {
-            var user = await _db.Users.FindAsync(userId);
-            if (user == null) throw new Exception("User not found");
+            var user = await _db.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                throw new Exception("User not found");
+
+            if (user.Status == UserStatus.Deleted)
+                throw new Exception("Deleted users cannot be re-enabled");
 
             user.Status = UserStatus.Active;
             user.DeletedAt = null;
+
+            await _db.SaveChangesAsync();
         }
 
         public async Task SoftDeleteUserAsync(Guid userId, Guid currentAdminId)
@@ -91,15 +121,20 @@ namespace MiniStore.Infrastructure.Services
             if (userId == currentAdminId)
                 throw new Exception("Admin cannot delete themselves");
 
-            var user = await _db.Users.FindAsync(userId);
-            if (user == null) throw new Exception("User not found");
+            var user = await _db.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                throw new Exception("User not found");
 
             if (user.Role == UserRole.Admin)
                 throw new Exception("Cannot delete admin");
 
             user.Status = UserStatus.Deleted;
             user.DeletedAt = DateTime.UtcNow;
-        }
 
+            await _db.SaveChangesAsync();
+        }
     }
 }
