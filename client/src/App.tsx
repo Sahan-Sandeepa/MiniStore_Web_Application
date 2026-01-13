@@ -17,6 +17,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import CheckoutPage from "./pages/order/CheckoutPage";
 import AdminUsers from "./pages/admin/AdminUsers";
 import MaintenancePage from "./pages/common/Maintenance";
+import Home from "./pages/common/Home";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path="/maintenance" element={<MaintenancePage />} />
+              <Route path="/home" element={<Home />} />
               <Route
                 path="/admin"
                 element={

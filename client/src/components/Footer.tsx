@@ -15,8 +15,8 @@ export default function Footer() {
             MiniStore
           </h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-            A modern e-commerce platform built for learning, scale, and
-            real-world experience.
+            A modern e-commerce platform built for shopping, and real-world
+            experience.
           </p>
 
           <div className="flex items-center gap-3">
@@ -76,7 +76,9 @@ export default function Footer() {
         <FooterColumn title="Support">
           <FooterLink to={"/maintenance"}>Help Center</FooterLink>
           <FooterLink to={"/maintenance"}>Contact Support</FooterLink>
-          <FooterLink to={"/maintenance"}>System Status</FooterLink>
+          {role === "Admin" && (
+            <FooterLink to={"/maintenance"}>System Status</FooterLink>
+          )}
         </FooterColumn>
       </div>
 

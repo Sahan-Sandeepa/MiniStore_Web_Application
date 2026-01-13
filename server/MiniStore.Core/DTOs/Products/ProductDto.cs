@@ -17,6 +17,7 @@ namespace MiniStore.Core.DTOs
         public decimal Price { get; set; }
         public int Stock { get; set; }
         public string? Category { get; set; }
+        public string? ImageUrl { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

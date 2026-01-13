@@ -31,7 +31,7 @@ const Login = () => {
       toast.success("Login successful 🎉");
 
       const role = getRoleFromToken(res.token);
-      navigate(role === "Admin" ? "/admin" : "/products");
+      navigate(role === "Admin" ? "/admin" : "/home");
     } catch {
       setError("Invalid username or password");
     } finally {
