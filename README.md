@@ -1,7 +1,7 @@
 # 🛒 MiniStore – Full Stack E-Commerce Application
 
 MiniStore is a **full-stack e-commerce application** built with **ASP.NET Core Web API** and **React + TypeScript**.  
-It implements **secure authentication, role-based authorization, admin dashboards, and product management**.
+It implements **secure authentication, role-based authorisation, admin dashboards, and product management**.
 
 This project follows **real-world architecture and best practices**, including JWT authentication, clean separation of concerns, and frontend/backend responsibility boundaries.
 
@@ -18,12 +18,27 @@ This project follows **real-world architecture and best practices**, including J
 
 ### 👤 Roles
 - **Admin**
-  - Access admin dashboard
-  - View inventory statistics
-  - Manage products
+  - Product management (Create, Update, Delete)
+  - Inventory & stock monitoring
+  - View and manage customer orders
+  - Update order statuses
+  - Admin dashboard with system insights
 - **Customer**
   - Browse products
+  - View product details
+  - Add products to cart
   - Place orders
+  - View order history
+  - Cancel eligible orders
+    
+### 🛒 Shopping & Orders
+
+  - Client-side shopping cart
+  - Checkout flow with confirmation
+  - Payment method selection (Card / Cash on Delivery)
+  - Order creation and persistence
+  - Order history with item-level details
+  - Order status tracking
 
 ### 📦 Products
 - Product listing
@@ -35,7 +50,18 @@ This project follows **real-world architecture and best practices**, including J
 - Dark mode support
 - Smooth animations using Framer Motion
 - Protected and role-based routing
+- Toast-based feedback for user actions
+- Optimistic UI updates for better UX
 
+### ⚙️ Non-Functional Features
+
+  - Clean Architecture
+  - Soft deletes
+  - Centralised error handling
+  - Loading & empty states
+  - Secure API boundaries
+  - Environment-based configuration
+  - Scalable project structure
 ---
 
 ## 🏗️ Tech Stack
@@ -44,13 +70,15 @@ This project follows **real-world architecture and best practices**, including J
 - **ASP.NET Core Web API**
 - **Entity Framework Core**
 - **JWT Authentication**
-- **SQL Server(PostgreSQL)**
+- **PostgreSQL (current)**
+- **SQL Server compatible (architecture)**
 - **Redis**
 - **Elasticsearch**
 - **Clean Architecture**
   - Core
   - Infrastructure
   - API
+- **Docker**
 
 ### Frontend
 - **React 19**
@@ -61,5 +89,13 @@ This project follows **real-world architecture and best practices**, including J
 - **Framer Motion**
 - **jwt-decode**
 - **react-hot-toast**
-
 ---
+
+### 🚧 Future Enhancements
+
+  - Payment gateway integration
+  - Product reviews & ratings
+  - User profile management
+  - Wishlist persistence
+  - Advanced search & filtering
+  - Image storage using cloud services
