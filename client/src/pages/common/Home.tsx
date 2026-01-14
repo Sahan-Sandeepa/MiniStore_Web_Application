@@ -20,7 +20,6 @@ export default function HomePage() {
   const isAdmin = role === "Admin";
   const { addToCart } = useCart();
   const navigate = useNavigate();
-
   const [products, setProducts] = useState<ProductReadDto[]>([]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -50,7 +49,9 @@ export default function HomePage() {
   }, []);
 
   const filteredProducts = products
-    .filter((p) => category === "All" || p.category === category)
+    .filter(
+      (p) => category === "All" || p.category === category || category === ""
+    )
     .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) =>
       sortBy === "PRICE_LOW" ? a.price - b.price : b.price - a.price

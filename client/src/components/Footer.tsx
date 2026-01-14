@@ -63,7 +63,7 @@ export default function Footer() {
         </div>
 
         <FooterColumn title="Product">
-          <FooterLink to="/products">Products</FooterLink>
+          <FooterLink to="/home">Products</FooterLink>
           <FooterLink to="/orders">Orders</FooterLink>
           <FooterLink to="/checkout">Checkout</FooterLink>
         </FooterColumn>
