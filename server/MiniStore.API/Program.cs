@@ -29,6 +29,9 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddAuthorization();
 
+// For fake external product API
+builder.Services.AddHttpClient<ExternalProductService>();
+
 // Register ElasticsearchService using IConfiguration from builder
 builder.Services.AddSingleton<ElasticsearchService>(sp =>
 {

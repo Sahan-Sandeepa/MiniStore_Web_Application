@@ -2,6 +2,7 @@ export interface ProductReadDto {
   id: string;
   name: string;
   description: string;
+  imageUrl?: string;
   price: number;
   stock: number;
   category: string;
